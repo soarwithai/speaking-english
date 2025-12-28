@@ -1,0 +1,7 @@
+{
+  "name": "UK Math Lingo & Culture Coach",
+  "description": "A dual-mode English practice app featuring free-talk translation styles and scenario-based coaching for UK mathematics students.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
