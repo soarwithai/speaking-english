@@ -1,8 +1,8 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 // Initialize Gemini Client
 const apiKey = process.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey: apiKey || '' });
+const ai = new GoogleGenerativeAI(apiKey || '');
 
 // Priority List: Strongest -> Fastest -> Fallback
 const TEXT_MODELS = ["gemini-1.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"];
@@ -24,11 +24,9 @@ async function generateWithFallback(contents, config) {
                 await new Promise(resolve => setTimeout(resolve, waitTime));
             }
 
-            const response = await ai.models.generateContent({
-                model: modelName,
-                contents,
-                config
-            });
+            const model = ai.getGenerativeModel({ model: modelName, generationConfig: config });
+            const result = await model.generateContent(contents);
+            const response = await result.response;
 
             return { response, active_model: modelName };
 
@@ -81,11 +79,11 @@ export default async function handler(req, res) {
                 config = {
                     responseMimeType: "application/json",
                     responseSchema: {
-                        type: Type.OBJECT,
+                        type: SchemaType.OBJECT,
                         properties: {
-                            simple: { type: Type.STRING },
-                            formal: { type: Type.STRING },
-                            slang: { type: Type.STRING },
+                            simple: { type: SchemaType.STRING },
+                            formal: { type: SchemaType.STRING },
+                            slang: { type: SchemaType.STRING },
                         },
                         required: ["simple", "formal", "slang"],
                     },
@@ -104,11 +102,11 @@ export default async function handler(req, res) {
                 config = {
                     responseMimeType: "application/json",
                     responseSchema: {
-                        type: Type.OBJECT,
+                        type: SchemaType.OBJECT,
                         properties: {
-                            topic: { type: Type.STRING },
-                            description: { type: Type.STRING },
-                            question: { type: Type.STRING },
+                            topic: { type: SchemaType.STRING },
+                            description: { type: SchemaType.STRING },
+                            question: { type: SchemaType.STRING },
                         },
                         required: ["topic", "description", "question"],
                     },
@@ -130,12 +128,12 @@ export default async function handler(req, res) {
                 config = {
                     responseMimeType: "application/json",
                     responseSchema: {
-                        type: Type.OBJECT,
+                        type: SchemaType.OBJECT,
                         properties: {
-                            score: { type: Type.NUMBER },
-                            critique: { type: Type.STRING },
-                            betterExample: { type: Type.STRING },
-                            culturalNote: { type: Type.STRING },
+                            score: { type: SchemaType.NUMBER },
+                            critique: { type: SchemaType.STRING },
+                            betterExample: { type: SchemaType.STRING },
+                            culturalNote: { type: SchemaType.STRING },
                         },
                         required: ["score", "critique", "betterExample", "culturalNote"],
                     },
@@ -161,13 +159,13 @@ export default async function handler(req, res) {
         let result = {};
         
         if (task === 'translate') {
-            result = { translation: response.text?.trim() || "Translation not found." };
+            result = { translation: response.text()?.trim() || "Translation not found." };
         } else {
             // Parse JSON response for structured tasks
             try {
-                result = JSON.parse(response.text);
+                result = JSON.parse(response.text());
             } catch (e) {
-                console.error("Failed to parse JSON response", response.text);
+                console.error("Failed to parse JSON response", response.text());
                 throw new Error("Invalid JSON response from model");
             }
         }
