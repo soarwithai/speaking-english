@@ -56,7 +56,7 @@ const ScenarioPractice: React.FC = () => {
       setScenario(data);
     } catch (error) {
       console.error(error);
-      alert("Failed to generate scenario.");
+      alert(error instanceof Error ? error.message : "Failed to generate scenario.");
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ const ScenarioPractice: React.FC = () => {
       setEvaluation(data);
     } catch (error) {
       console.error(error);
-      alert("Failed to evaluate response.");
+      alert(error instanceof Error ? error.message : "Failed to evaluate response.");
     } finally {
       setLoading(false);
     }
